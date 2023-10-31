@@ -1,3 +1,14 @@
+// function checks status of API response
+const checkStatus = (response) => {
+  if (response.ok) {
+    return response; // returns true if response status is 200 - 299
+  }
+  throw new Error('Request was either 404 or 500');
+};
+
+// returns json formatted response
+const json = (response) => response.json();
+
 // Movie component that displays an individual movie from search
 const Movie = (props) => {
   const { Title, Year, imdbID, Type, Poster } = props.movie;
@@ -19,7 +30,7 @@ const Movie = (props) => {
       </div>
     </div>
   );
-}
+};
 
 // MovieFinder component includes the basic HTML and event listeners
 class MovieFinder extends React.Component {
@@ -28,7 +39,7 @@ class MovieFinder extends React.Component {
     this.state = {
       searchTerm: '',
       results: [],
-      error: ''
+      error: '',
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -48,40 +59,35 @@ class MovieFinder extends React.Component {
     let { searchTerm } = this.state;
     searchTerm = searchTerm.trim();
     // check if value isn't empty string
-    if(!searchTerm) {
+    if (!searchTerm) {
       return;
     }
 
     // make AJAX request to OMDBAPI to get list of results
     fetch(`http://www.omdbapi.com/?s=${searchTerm}&apikey=a9d858b2`)
-    .then((response) => {
-      // check if response is ok or else throw error
-      if(response.ok) {
-        return response.json();
-      }
-      throw new Error('Request was either a 404 or 500');
-    }).then((data) => {
-      console.log(data);
-      // throw error if no movies are found
-      if(data.Response === 'False') {
-        throw new Error(data.Error);
-      }
-      // store array of movie objects in component state if movies are found
-      if(data.Response === 'True' && data.Search) {
-        this.setState({ results: data.Search });
-      }
-    }).catch((error) => {
-      // update error state if error is caught
-      this.setState({ error: error.message });
-      console.log(error);
-
-      
-    })
+      .then(checkStatus)
+      .then(json)
+      .then((data) => {
+        console.log(data);
+        // throw error if no movies are found
+        if (data.Response === 'False') {
+          throw new Error(data.Error);
+        }
+        // store array of movie objects in component state if movies are found
+        if (data.Response === 'True' && data.Search) {
+          this.setState({ results: data.Search, error: '' });
+        }
+      })
+      .catch((error) => {
+        // update error state if error is caught
+        this.setState({ error: error.message });
+        console.log(error);
+      });
   }
-  
+
   render() {
     const { searchTerm, results, error } = this.state;
-    return(
+    return (
       <div className='container'>
         <div className='row'>
           <div className='col-12'>
@@ -97,17 +103,17 @@ class MovieFinder extends React.Component {
                 Submit
               </button>
             </form>
-            {
-              (() => {
-                if(error) {
-                  return error;
-                }
-                
-                return results.map((movie) => {
-                  return <Movie key={movie.imdbID} movie={movie}/>
-                })
-              })()
-            }
+            {(() => {
+              if (error) {
+                // display error if one is thrown
+                return error;
+              }
+
+              return results.map((movie) => {
+                // display each individual movie from search
+                return <Movie key={movie.imdbID} movie={movie} />;
+              });
+            })()}
           </div>
         </div>
       </div>
