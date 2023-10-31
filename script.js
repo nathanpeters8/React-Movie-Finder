@@ -28,6 +28,7 @@ class MovieFinder extends React.Component {
     this.state = {
       searchTerm: '',
       results: [],
+      error: ''
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -61,16 +62,25 @@ class MovieFinder extends React.Component {
       throw new Error('Request was either a 404 or 500');
     }).then((data) => {
       console.log(data);
-      // store array of movie objects in component state
-      this.setState({ results: data.Search });
+      // throw error if no movies are found
+      if(data.Response === 'False') {
+        throw new Error(data.Error);
+      }
+      // store array of movie objects in component state if movies are found
+      if(data.Response === 'True' && data.Search) {
+        this.setState({ results: data.Search });
+      }
     }).catch((error) => {
-      // log error if request failed
+      // update error state if error is caught
+      this.setState({ error: error.message });
       console.log(error);
+
+      
     })
   }
   
   render() {
-    const { searchTerm, results } = this.state;
+    const { searchTerm, results, error } = this.state;
     return(
       <div className='container'>
         <div className='row'>
@@ -87,10 +97,17 @@ class MovieFinder extends React.Component {
                 Submit
               </button>
             </form>
-            {results.map((movie) => {
-              // display each movie from list of results
-              return <Movie key={movie.imdbID} movie={movie}/>; 
-            })}
+            {
+              (() => {
+                if(error) {
+                  return error;
+                }
+                
+                return results.map((movie) => {
+                  return <Movie key={movie.imdbID} movie={movie}/>
+                })
+              })()
+            }
           </div>
         </div>
       </div>
