@@ -19,6 +19,30 @@ class MovieFinder extends React.Component {
   // handle submitting the movie search input
   handleSubmit(event) {
     event.preventDefault();
+
+    // get search term after form submitted
+    let { searchTerm } = this.state;
+    searchTerm = searchTerm.trim();
+    // check if value isn't empty string
+    if(!searchTerm) {
+      return;
+    }
+
+    // make AJAX request to OMDBAPI to get list of results
+    fetch(`http://www.omdbapi.com/?s=${searchTerm}&apikey=a9d858b2`)
+    .then((response) => {
+      // check if response is ok or else throw error
+      if(response.ok) {
+        return response.json();
+      }
+      throw new Error('Request was either a 404 or 500');
+    }).then((data) => {
+      // log data if request successful
+      console.log(data);
+    }).catch((error) => {
+      // log error if request failed
+      console.log(error);
+    })
   }
   
   render() {
