@@ -64,7 +64,7 @@ class MovieFinder extends React.Component {
     }
 
     // make AJAX request to OMDBAPI to get list of results
-    fetch(`http://www.omdbapi.com/?s=${searchTerm}&apikey=a9d858b2`)
+    fetch(`https://www.omdbapi.com/?s=${searchTerm}&apikey=a9d858b2`)
       .then(checkStatus)
       .then(json)
       .then((data) => {
