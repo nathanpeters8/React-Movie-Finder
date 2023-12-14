@@ -1,3 +1,5 @@
+const { useState } = React;
+
 // function checks status of API response
 const checkStatus = (response) => {
   if (response.ok) {
@@ -33,38 +35,30 @@ const Movie = (props) => {
 };
 
 // MovieFinder component includes the basic HTML and event listeners
-class MovieFinder extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      searchTerm: '',
-      results: [],
-      error: '',
-    };
+const MovieFinder = (props) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState('');
 
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
 
   // handle any changes to input and update state
-  handleChange(event) {
-    this.setState({ searchTerm: event.target.value });
+  const handleChange = (event) => {
+    setSearchTerm(event.target.value);
   }
 
   // handle submitting the movie search input
-  handleSubmit(event) {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     // get search term after form submitted
-    let { searchTerm } = this.state;
-    searchTerm = searchTerm.trim();
+    const searchTermCopy = searchTerm.trim();
     // check if value isn't empty string
-    if (!searchTerm) {
+    if (!searchTermCopy) {
       return;
     }
 
     // make AJAX request to OMDBAPI to get list of results
-    fetch(`https://www.omdbapi.com/?s=${searchTerm}&apikey=a9d858b2`)
+    fetch(`https://www.omdbapi.com/?s=${searchTermCopy}&apikey=a9d858b2`)
       .then(checkStatus)
       .then(json)
       .then((data) => {
@@ -75,50 +69,48 @@ class MovieFinder extends React.Component {
         }
         // store array of movie objects in component state if movies are found
         if (data.Response === 'True' && data.Search) {
-          this.setState({ results: data.Search, error: '' });
+          setResults(data.Search);
+          setError('');
         }
       })
       .catch((error) => {
         // update error state if error is caught
-        this.setState({ error: error.message });
+        setError(error.message);
         console.log(error);
       });
   }
 
-  render() {
-    const { searchTerm, results, error } = this.state;
-    return (
-      <div className='container'>
-        <div className='row'>
-          <div className='col-12'>
-            <form onSubmit={this.handleSubmit} className='form-inline my-4'>
-              <input
-                type='text'
-                className='form-control mr-sm-2'
-                placeholder='Frozen'
-                value={searchTerm}
-                onChange={this.handleChange}
-              />
-              <button type='submit' className='btn btn-primary'>
-                Submit
-              </button>
-            </form>
-            {(() => {
-              if (error) {
-                // display error if one is thrown
-                return error;
-              }
+  return (
+    <div className='container'>
+      <div className='row'>
+        <div className='col-12'>
+          <form onSubmit={handleSubmit} className='form-inline my-4'>
+            <input
+              type='text'
+              className='form-control mr-sm-2'
+              placeholder='Frozen'
+              value={searchTerm}
+              onChange={handleChange}
+            />
+            <button type='submit' className='btn btn-primary'>
+              Submit
+            </button>
+          </form>
+          {(() => {
+            if (error) {
+              // display error if one is thrown
+              return error;
+            }
 
-              return results.map((movie) => {
-                // display each individual movie from search
-                return <Movie key={movie.imdbID} movie={movie} />;
-              });
-            })()}
-          </div>
+            return results.map((movie) => {
+              // display each individual movie from search
+              return <Movie key={movie.imdbID} movie={movie} />;
+            });
+          })()}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 const container = document.getElementById('root');
